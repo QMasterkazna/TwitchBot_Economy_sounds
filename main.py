@@ -78,21 +78,24 @@ async def my_event():
             print(cash_value)
             print(round(cash_value))
             print(littleboss_users)
-            for i in littleboss_users:
-                cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (cash_value, i))
+            cash_value = round(cash_value)
+            for user in littleboss_users:
+                cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (cash_value, user))
                 connection.commit()
-                print(i)
-            for i in littleboss_users:
-                littleboss_users.remove(i)
+                print(user)
+            for user in littleboss_users:
+                littleboss_users.remove(user)
         elif bigboss_hp <= 0:
             bigboss_hp = 500
             bigboss_spawn = False
             users_active_with_bigboss = len(bigboss_users)
             print(users_active_with_bigboss)
             cash_value = 5000 / users_active_with_bigboss
+            cash_value = round(cash_value)
             for user in bigboss_users:
                 cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (cash_value, user))
                 connection.commit()
+                print(user)
             for user in bigboss_users:
                 bigboss_users.remove(user)
         else:
@@ -162,7 +165,7 @@ async def penis_metr(ctx: commands.Context):
     author = ctx.author.name
     cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (5, author))
     connection.commit()
-    await ctx.reply(f"{ctx.author.name} Твой член сейчас: {random.randint(1, 35)}см")
+    await ctx.reply(f"Твой член сейчас: {random.randint(1, 35)}см")
 
 
 @bot.command(name="volume")
@@ -438,7 +441,7 @@ async def attack_boss(ctx: commands.Context):
                     await ctx.send(
                         f"{author}, нанес решающий удар и завалил серьезного дядю, награда будет распределена между братьями по оружию! {', '.join(bigboss_users)}")
             else:
-                littleboss_users.append(author)
+                bigboss_users.append(author)
                 if bigboss_hp <= 0:
                     bigboss_spawn = False
                     await ctx.send(
