@@ -335,23 +335,34 @@ async def balance(ctx: commands.Context):
     print(author)
     await ctx.reply(f"У вас сейчас {get_cash_for_user(author)} пряников")
 
+def check_cash(name, cash):
+    query = f"SELECT * FROM users WHERE name = ? AND cash >= ?"
+    cursor = connection.execute(query, (name, cash))
+    result = cursor.fetchone()
 
+    if result is not None:
+        return True
+    else:
+        return False
 @bot.command(name="littleboss")
 @commands.cooldown(1, 3600, Bucket.channel)
 async def littleboss_summon(ctx: commands.Context):
     global littleboss_time
     global littleboss_spawn
     global bigboss_spawn
-    if bigboss_spawn:
-        await ctx.send("Извините, но уже призван большой босс")
+    if check_cash(ctx.author.name.lower(), 10):
+        if bigboss_spawn:
+            await ctx.send("Извините, но уже призван большой босс")
+        else:
+            author = ctx.author.name.lower()
+            cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (10, author))
+            connection.commit()
+            await ctx.send(
+                f"@{author}, вызвал лоу лвл бомжа, валите его на бок, ломайте ему хуй!")
+            littleboss_spawn = True
+            littleboss_time = 300
     else:
-        author = ctx.author.name.lower()
-        cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (10, author))
-        connection.commit()
-        await ctx.send(
-            f"@{author}, вызвал лоу лвл бомжа, валите его на бок, ломайте ему хуй!")
-        littleboss_spawn = True
-        littleboss_time = 300
+        await ctx.send(f"@{ctx.author.name}, у вас недостаточно пряников!")
 
 
 @bot.command(name="bigboss")
@@ -360,16 +371,19 @@ async def bigboss_summon(ctx: commands.Context):
     global bigboss_spawn
     global bigboss_time
     global littleboss_spawn
-    if littleboss_spawn:
-        await ctx.send("Извините, но уже призван маленький босс")
+    if check_cash(ctx.author.name.lower(), 50):
+        if littleboss_spawn:
+            await ctx.send("Извините, но уже призван маленький босс")
+        else:
+            author = ctx.author.name.lower()
+            cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (50, author))
+            connection.commit()
+            await ctx.send(
+                f"@{author}, вызвал серьёзного дядю в чат, покажите ему, кто босс этой качалки!")
+            bigboss_spawn = True
+            bigboss_time = 300
     else:
-        author = ctx.author.name.lower()
-        cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (50, author))
-        connection.commit()
-        await ctx.send(
-            f"@{author}, вызвал серьёзного дядю в чат, покажите ему, кто босс этой качалки!")
-        bigboss_spawn = True
-        bigboss_time = 300
+        await ctx.send(f"@{ctx.author.name}, у вас недостаточно пряников!")
 
 
 woord_for_0_damage = ["моя бабка сильнее бьёт!", "если продолжишь в том же духе, босс просто развернётся и уйдет!"]
