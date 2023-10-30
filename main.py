@@ -21,7 +21,7 @@ from twitchio.ext.commands.errors import (
 bot_token = TOKEN
 my_token = My_TOKEN
 
-bot = commands.Bot(token=bot_token, prefix="!", initial_channels=["CHANNEL_NAME"])
+bot = commands.Bot(token=bot_token, prefix="!", initial_channels=["man0ffsky"])
 
 connection = sqlite3.connect('user.db')
 cursor = connection.cursor()
@@ -242,7 +242,7 @@ async def event_message(message):
                 pygame.mixer_music.set_volume(float(Volume))
                 pygame.mixer_music.play()
                 """Отнимаем бабло и сохраняем"""
-                cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (20, author))
+                cursor.execute("UPDATE users SET cash = cash - ? WHERE name = ?", (30, author))
                 connection.commit()
             else:
                 await message.channel.send(f"{author}, у вас недостаточно пряников!")
@@ -451,13 +451,69 @@ async def attack_boss(ctx: commands.Context):
     else:
         print("Пользователя нет в БД!")
         cursor.execute(f"INSERT INTO users VALUES ('{author}', 0)")
-        cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (100, author))
         connection.commit()
-        key_moment_random = random.randint(0, 15)
-        key_moment_damage = key_moment_random
-        littleboss_hp -= key_moment_damage
-        await ctx.send(f"{author}, нанёс {key_moment_damage}")
-        littleboss_users.append(author)
+        if littleboss_spawn:
+            """логика рандома урона"""
+            key_moment_random = random.randint(0, 50)
+            key_moment_damage = key_moment_random
+            littleboss_hp -= key_moment_damage
+            if key_moment_damage == 0:
+                await ctx.send(
+                    f"{author}, нанес {key_moment_damage} урона, {random.choice(woord_for_0_damage)} HP: {littleboss_hp} Time: {littleboss_time}")
+            elif key_moment_damage >= 1 and key_moment_damage <= 18:
+                await ctx.send(
+                    f"{author}, нанёс {key_moment_damage}, так держать, мамкин боец! HP: {littleboss_hp} Time: {littleboss_time}")
+            elif key_moment_damage >= 19 and key_moment_damage <= 30:
+                await ctx.send(
+                    f"{author}, нанёс {key_moment_damage}, неплохой удар! HP: {littleboss_hp} Time: {littleboss_time}")
+            elif key_moment_damage >= 31 and key_moment_damage <= 50:
+                await ctx.send(
+                    f"{author}, нанёс {key_moment_damage}, босс приахуел с такого поворота событий! HP: {littleboss_hp} Time: {littleboss_time}")
+
+            if author in littleboss_users:  # условие если пользователь есть в списке
+                print("Пользователь участвует!")
+                if littleboss_hp <= 0:
+                    littleboss_spawn = False
+                    await ctx.send(
+                        f"{author}, нанес решающий удар и завалил Лоу лвл бомжа, награда будет распределена между братьями по оружию! {', '.join(littleboss_users)}")
+            else:
+                if littleboss_hp <= 0:
+                    littleboss_spawn = False
+                    await ctx.send(
+                        f"{author}, нанес решающий удар и завалил Лоу лвл бомжа, награда будет распределена между братьями по оружию! {', '.join(littleboss_users)}")
+
+                littleboss_users.append(author)
+        elif bigboss_spawn:
+            """логика рандома урона"""
+            key_moment_random = random.randint(0, 100)
+            key_moment_damage = key_moment_random
+            bigboss_hp -= key_moment_damage
+            if key_moment_damage == 0:
+                await ctx.send(
+                    f"{author}, нанес {key_moment_damage} урона, {random.choice(woord_for_0_damage)} HP: {bigboss_hp} Time: {bigboss_time}")
+            elif key_moment_damage >= 1 and key_moment_damage <= 32:
+                await ctx.send(
+                    f"{author}, нанёс {key_moment_damage}, так держать, мамкин боец! HP: {bigboss_hp} Time: {bigboss_time}")
+            elif key_moment_damage >= 33 and key_moment_damage <= 62:
+                await ctx.send(
+                    f"{author}, нанёс {key_moment_damage}, неплохой удар! HP: {bigboss_hp} Time: {bigboss_time}")
+            elif key_moment_damage >= 63 and key_moment_damage <= 100:
+                await ctx.send(
+                    f"{author}, нанёс {key_moment_damage}, босс приахуел с такого поворота событий! HP: {bigboss_hp} Time: {bigboss_time}")
+            if author in bigboss_users:
+                print("Пользователь участвует!")
+                if bigboss_hp <= 0:
+                    bigboss_spawn = False
+                    await ctx.send(
+                        f"{author}, нанес решающий удар и завалил серьезного дядю, награда будет распределена между братьями по оружию! {', '.join(bigboss_users)}")
+            else:
+                bigboss_users.append(author)
+                if bigboss_hp <= 0:
+                    bigboss_spawn = False
+                    await ctx.send(
+                        f"{author}, нанес решающий удар и завалил серьезного дядю, награда будет распределена между братьями по оружию! {', '.join(bigboss_users)}")
+        else:
+            await ctx.send("Босс уже мёртв или ещё не реснулся")
 
 
 nameDueller = []
@@ -571,30 +627,45 @@ async def event_eventsub_notification_channel_reward_redeem(
     if check_user(author):
         print("users in BD")
         if id_reward == reward_id_1k1:
-            cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (1000, author))
+            cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (5000, author))
             connection.commit()
-            print(f"Добавлено {1000} к cash пользователю {author}! 😊")
+            print(f"Добавлено {5000} к cash пользователю {author}! 😊")
         elif id_reward == reward_id_1k2:
             random_moment = random.randint(1, 100)
             key_moment = random_moment
             if key_moment <= 85:
                 print(key_moment)
-                cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (2000, author))
+                cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (10000, author))
                 connection.commit()
-                print(f"Добавлено {2000} к cash пользователю {author}! 😊")
+                print(f"Добавлено {10000} к cash пользователю {author}! 😊")
             else:
                 print("неудача(")
         elif id_reward == reward_id_10k:
-            cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (10000, author))
+            cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (20000, author))
             connection.commit()
-            print(f"Добавлено {10000} к cash пользователю {author}! 😊")
+            print(f"Добавлено {20000} к cash пользователю {author}! 😊")
     else:
         print("Пользователя нет в БД!")
         cursor.execute(f"INSERT INTO users VALUES ('{author}', 0)")
-        cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (100, author))
         connection.commit()
-        print(f"Добавлено {100} к cash пользователю {author}! 😊")
-        connection.commit()
+        if id_reward == reward_id_1k1:
+            cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (5000, author))
+            connection.commit()
+            print(f"Добавлено {5000} к cash пользователю {author}! 😊")
+        elif id_reward == reward_id_1k2:
+            random_moment = random.randint(1, 100)
+            key_moment = random_moment
+            if key_moment <= 85:
+                print(key_moment)
+                cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (10000, author))
+                connection.commit()
+                print(f"Добавлено {10000} к cash пользователю {author}! 😊")
+            else:
+                print("неудача(")
+        elif id_reward == reward_id_10k:
+            cursor.execute("UPDATE users SET cash = cash + ? WHERE name = ?", (20000, author))
+            connection.commit()
+            print(f"Добавлено {20000} к cash пользователю {author}! 😊")
 
     print("ready!")
 
